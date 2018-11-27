@@ -3,6 +3,7 @@ package Identity
 import(
 	"fmt"
 	"os"
+	"io/ioutil"
 )
 
 type Cookie struct {
@@ -12,7 +13,7 @@ type Cookie struct {
 
 
 //创建cookie存放的目录
-func (cookie *Cookie) createCookiePath(cookiePath string, filename string) {
+func (cookie *Cookie) createCookiePath(cookiePath string) {
 	//检测目录是否存在
 	_, err := os.Stat(cookiePath)
 	//不存在则建立该目录
@@ -24,20 +25,14 @@ func (cookie *Cookie) createCookiePath(cookiePath string, filename string) {
 			fmt.Printf("mkdir success")
 		}
 	}
-
-	//创建文件
-	os.Create(cookiePath + "/" + filename)
 }
 
 //获取cookie存放的目录
-func (cookie *Cookie) getCookiePath(filename string, path string) string {
+func (cookie *Cookie) getCookiePath(filename string) string {
 	cookiePath := "./cookies"
-	if (path != "") {
-		cookiePath = path
-	}
 
 	Cookie := &Cookie{}
-	Cookie.createCookiePath(cookiePath, filename)
+	Cookie.createCookiePath(cookiePath)
 
 	return cookiePath + "/" + filename
 }
@@ -53,7 +48,7 @@ func (cookie *Cookie) getCookieFileName(identityCode string) (string,error) {
 }
 
 
-func (cookie *Cookie) SetCookie(info , identityCode string) error {
+func (cookie *Cookie) SetCookie(info string, identityCode string) error {
 	Cookie := &Cookie{}
 	//获取cookie名称
 	cookieFileName,err := Cookie.getCookieFileName(identityCode)
@@ -61,17 +56,48 @@ func (cookie *Cookie) SetCookie(info , identityCode string) error {
 		return fmt.Errorf("can get cookieFileName")
 	}
 	//获取cookie存放路径
-	cookiePath := Cookie.getCookiePath(cookieFileName, "")
-	
+	cookiePath := Cookie.getCookiePath(cookieFileName)
+
 	//打开文件，获取文件指针
-	cookieFile, error := os.Open(cookiePath)
+	cookieFile, error := os.Create(cookiePath)
 	if (error != nil) {
 		return error
 	}
 	
+	defer cookieFile.Close()
+
 	//写入内容
-	writeStr, writeErr := cookieFile.WriteString("fadfadsfdsa" + info)
-	fmt.Printf("wrote %d bytes", writeStr)
-	cookieFile.Close()
+	_, writeErr := cookieFile.WriteString(info)
+	
 	return writeErr
+}
+
+func (cookie *Cookie) GetCookie(identityCode string) string {
+	Cookie := &Cookie{}
+	//获取cookie名称
+	cookieFileName, err := Cookie.getCookieFileName(identityCode)
+	if (err != nil) {
+		panic("can not get cookie")
+	}
+
+	//获取cookie存放路径
+	cookiePath := Cookie.getCookiePath(cookieFileName)
+
+	cookieFile, error := os.Open(cookiePath)
+	if (error != nil) {
+		panic("can not open cookieFile")
+	}
+
+	defer cookieFile.Close()  //在该函数即将返回前才执行
+
+	//该方法读取不到中文
+	//b1 := make([]byte, 5)
+	//_, readErr := cookieFile.Read(b1)
+
+	res, readErr := ioutil.ReadAll(cookieFile)
+	if (readErr != nil) {
+		panic("can not read cookieFile")
+	}
+
+	return string(res)
 }
