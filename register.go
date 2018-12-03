@@ -1,8 +1,7 @@
 package main
 
 import (
- 	_"./Identity"
- 	"./HttpCurl"
+ 	"./Identity"
  	"fmt"
 )
 
@@ -13,17 +12,10 @@ func main() {
 	// cookie := Cookie.GetCookie("3625290027")
 	// fmt.Printf(cookie)
 
-	httpCurl := &HttpCurl.HttpCurl{}
-	httpCurl.SetUrl("http://www.zj12580.cn/captcha?yzmType=6")
-
-	headers := make(map[string]string)
-	headers["Origin"] = "http://www.zj12580.cn"
-	headers["Host"] = "www.zj12580.cn"
-	httpCurl.SetHeaders(headers)
-
-	res := make(map[string]interface{})
-	res, _ = httpCurl.GetContentsFromUrl()
-	fmt.Println(res)
+	Captcha := &Identity.Captcha{}
+	yzmImg := Captcha.GetCaptchaImgBase64()
+	
+	fmt.Println(yzmImg)
 	//print_map(res)
 }
 

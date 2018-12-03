@@ -4,7 +4,7 @@ import(
 	"net/http"
 	_"../Common"
 	"strings"
-	"fmt"
+	_"fmt"
 	"io/ioutil"
 	"encoding/json"
 )
@@ -26,7 +26,14 @@ func (HttpCurl *HttpCurl) SetUrl(url string) {
 
 func (HttpCurl *HttpCurl) SetHeaders(headers map[string]string) {
 	HttpCurl.headers = headers
+}
 
+func (HttpCurl *HttpCurl) SetQueries(queries map[string]string) {
+	HttpCurl.queries = queries
+}
+
+func (HttpCurl *HttpCurl) SetPostData(postData map[string]interface{}) {
+	HttpCurl.postData = postData
 }
 
 func (HttpCurl *HttpCurl) httpGet() (map[string]interface{}, error) {
@@ -60,10 +67,10 @@ func (HttpCurl *HttpCurl) httpGet() (map[string]interface{}, error) {
 	defer response.Body.Close()
 
 	str, _ := ioutil.ReadAll(response.Body)
-	fmt.Printf(string(str))
+	//fmt.Printf(string(str))
 
 	res := make(map[string]interface{})
-	error := json.Unmarshal(str, res)
+	error := json.Unmarshal(str, &res)
 
 	return res, error
 }
@@ -83,6 +90,7 @@ func (HttpCurl *HttpCurl) GetContentsFromUrl() (map[string]interface{}, error) {
 	//Get形式
 	if (HttpCurl.postData == nil) {
 		res, _  = HttpCurl.httpGet()
+	//Post形式
 	} else {
 		res, _  = HttpCurl.httpPost()
 	}
