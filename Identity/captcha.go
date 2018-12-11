@@ -2,6 +2,8 @@ package Identity
 
 import(
 	"../HttpCurl"
+	"encoding/json"
+	"fmt"
 )
 
 type Captcha struct{
@@ -10,25 +12,15 @@ type Captcha struct{
 	base64ImgUrl string
 	yzmScanResUrl string
 	yzmAppcode string
-
-	// headerOrigin = "http://www.zj12580.cn"
-	// headerHost := "www.zj12580.cn"
-
-	// //获取base64验证码图片地址
-	// base64ImgUrl := "http://www.zj12580.cn/captcha?yzmType=6"
-	// //验证码图片识别地址
-	// yzmScanResUrl := "https://302307.market.alicloudapi.com/ocr/captcha"
-	// //验证码识别appcode
-	// yzmAppcode := "a924d95422454ad4a335250b534e419a"
-	
 }
 
 func (Captcha *Captcha) init() {
 	Captcha.headerOrigin = "http://www.zj12580.cn"
 	Captcha.headerHost = "www.zj12580.cn"
-	Captcha.base64ImgUrl = "http//www.zj12580.cn/captcha?yzmType=6"
-	Captcha.yzmScanResUrl = "https//302307.market.alicloudapi.com/ocr/captcha"
+	Captcha.base64ImgUrl = "http://www.zj12580.cn/captcha"
+	Captcha.yzmScanResUrl = "https://302307.market.alicloudapi.com/ocr/captcha"
 	Captcha.yzmAppcode = "a924d95422454ad4a335250b534e419a"
+	// Captcha.yzmAppcode = "a924d95422454ad4a335250fadsfasdfasb534e419a"
 }
 
 //获取base64的验证码图片
@@ -47,10 +39,15 @@ func (Captcha *Captcha) GetCaptchaImgBase64() string {
 	headers["Host"] = Captcha.headerHost
 	httpCurl.SetHeaders(headers)
 
-	res := make(map[string]interface{})
-	res, err := httpCurl.GetContentsFromUrl()
+	str, err := httpCurl.GetContentsFromUrl()
 	if (err != nil) {
 		panic("can not get yzmImg")
+	}
+
+	res := make(map[string]interface{})
+	error := json.Unmarshal(str, &res)
+	if (error != nil) {
+		panic("json unmarshal failed")
 	}
 	
 	return res["yzm"].(string)
@@ -68,21 +65,32 @@ func (Captcha *Captcha) GetYzmResultByImg(base64Img string) string {
 	headers["charset"] = "UTF-8"
 	httpCurl.SetHeaders(headers)
 
-	postData := make(map[string]interface{})
+	postData := make(map[string]string)
 	postData["image"] = base64Img
-	postData["length"] = 0
-	postData["type"] = 1001
+	postData["length"] = "0"
+	postData["type"] = "1001"
 	httpCurl.SetPostData(postData)
 
-	res := make(map[string]interface{})
-	res, err := httpCurl.GetContentsFromUrl()
+	str, err := httpCurl.GetContentsFromUrl()
 	if (err != nil) {
 		panic("can not get correct yzm")
 	}
+	fmt.Printf(string(str))
+	res := make(map[string]map[string]string)
+	// resultStr := "{\"code\":0,\"data\":{\"captcha\":\"nwmn\",\"type\":1001,\"length\":4,\"id\":\"e0cf8713-0343-49c2-a75f-47f58f05b392\"}}"	
+	errors := json.Unmarshal(str, &res)
+	if (errors != nil) {
+		panic("json unmarshal failed")
+	}
 
-	return res["data"]["captcha"].(string)
+	//dataRes := make(map[string]string)
+	//dataRes = res["data"]
+
+	return  res["data"]["captcha"]
 
 }
+
+
 
 
 

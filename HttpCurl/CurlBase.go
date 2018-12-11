@@ -2,11 +2,11 @@ package HttpCurl
 
 import(
 	"net/http"
+	"net/url"
 	_"../Common"
 	"strings"
-	_"fmt"
+	"fmt"
 	"io/ioutil"
-	"encoding/json"
 )
 
 type HttpCurl struct {
@@ -17,7 +17,7 @@ type HttpCurl struct {
 	//get参数
 	queries map[string]string
 	//post参数
-	postData map[string]interface{}
+	postData map[string]string
 }
 
 func (HttpCurl *HttpCurl) SetUrl(url string) {
@@ -32,28 +32,45 @@ func (HttpCurl *HttpCurl) SetQueries(queries map[string]string) {
 	HttpCurl.queries = queries
 }
 
-func (HttpCurl *HttpCurl) SetPostData(postData map[string]interface{}) {
+func (HttpCurl *HttpCurl) SetPostData(postData map[string]string) {
 	HttpCurl.postData = postData
 }
 
-func (HttpCurl *HttpCurl) httpGet() (map[string]interface{}, error) {
-	client := &http.Client{}
+func (HttpCurl *HttpCurl) getGetUrl() string {
 	url := HttpCurl.url
-
 	//get参数处理
 	if (HttpCurl.queries != nil) {
 		//HttpCurl.queries = Common.MapTrans.MapToString(HttpCurl.queries)
-		url = url + "?1=1"
+		url = url + "?1=1&"
 		queries := make([]string, 0, len(HttpCurl.queries))
 		for k, v := range HttpCurl.queries {
 			queries = append(queries, k + "=" + v)
 		}
 		url = url + strings.Join(queries, "&")
+	}
 
+	return url
+}
+
+
+func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
+	client := &http.Client{}
+	urlQuery := HttpCurl.getGetUrl()
+	fmt.Println(method)
+
+	//添加post参数
+	if (method == "POST") {
+		data := url.Values{}
+		for k, v := range HttpCurl.postData {
+			data.Add(k, v)
+		}
+		u, _ := url.ParseRequestURI(urlQuery)
+		u.RawQuery = data.Encode()
+		urlQuery = fmt.Sprintf("%v", u)
 	}
 
 	//提交请求
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest(method, urlQuery, nil)
 	if (err != nil) {
 		panic("can not new request")
 	}
@@ -63,37 +80,41 @@ func (HttpCurl *HttpCurl) httpGet() (map[string]interface{}, error) {
 		request.Header.Add(k, v)
 	}
 
-	response, _ := client.Do(request)
-	defer response.Body.Close()
+	response, err := client.Do(request)
+	if (err != nil) {
+		fmt.Println(err)
+		panic("can not get response")
+	}
 
-	str, _ := ioutil.ReadAll(response.Body)
-	//fmt.Printf(string(str))
+	defer response.Body.Close()	
 
-	res := make(map[string]interface{})
-	error := json.Unmarshal(str, &res)
+	str, err := ioutil.ReadAll(response.Body)
+	fmt.Printf(string(str))	
+	if (err != nil) {
+		fmt.Println(response.StatusCode)
+		fmt.Printf(string(str))
+		panic("can not read response")
+	}
 
-	return res, error
+	return str, err
 }
 
-func (HttpCurl *HttpCurl) httpPost() (map[string]interface{}, error) {
-	res := make(map[string]interface{})
-	return res, nil
-}
-
-func (HttpCurl *HttpCurl) GetContentsFromUrl() (map[string]interface{}, error) {
+func (HttpCurl *HttpCurl) GetContentsFromUrl() ([]byte, error) {
 	//校验url
 	if (HttpCurl.url == "") {
 		panic("url is empty")
 	}
 
-	res := make(map[string]interface{})
+	var method string
 	//Get形式
 	if (HttpCurl.postData == nil) {
-		res, _  = HttpCurl.httpGet()
+		method = "GET"
 	//Post形式
 	} else {
-		res, _  = HttpCurl.httpPost()
+		method = "POST"
 	}
+
+	res, _  := HttpCurl.httpCurl(method)
 
 	return res, nil
 }

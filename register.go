@@ -14,8 +14,9 @@ func main() {
 
 	Captcha := &Identity.Captcha{}
 	yzmImg := Captcha.GetCaptchaImgBase64()
-	
-	fmt.Println(yzmImg)
+	// fmt.Printf(yzmImg)
+	yzmResult := Captcha.GetYzmResultByImg(yzmImg)
+	fmt.Println(yzmResult)
 	//print_map(res)
 }
 
