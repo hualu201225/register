@@ -90,8 +90,8 @@ func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
 
 	str, err := ioutil.ReadAll(response.Body)
 	fmt.Printf(string(str))	
+	fmt.Println(response.StatusCode)
 	if (err != nil) {
-		fmt.Println(response.StatusCode)
 		fmt.Printf(string(str))
 		panic("can not read response")
 	}
