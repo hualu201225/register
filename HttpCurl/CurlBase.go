@@ -57,20 +57,21 @@ func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
 	client := &http.Client{}
 	urlQuery := HttpCurl.getGetUrl()
 	fmt.Println(method)
-
+	fmt.Println(urlQuery)
 	//添加post参数
+	var urlPost string
 	if (method == "POST") {
 		data := url.Values{}
 		for k, v := range HttpCurl.postData {
 			data.Add(k, v)
 		}
-		u, _ := url.ParseRequestURI(urlQuery)
-		u.RawQuery = data.Encode()
-		urlQuery = fmt.Sprintf("%v", u)
+		//u, _ := url.ParseRequestURI(urlQuery)
+		urlPost = data.Encode()
 	}
+	fmt.Printf(urlPost)
 
 	//提交请求
-	request, err := http.NewRequest(method, urlQuery, nil)
+	request, err := http.NewRequest(method, urlQuery, strings.NewReader(urlPost))
 	if (err != nil) {
 		panic("can not new request")
 	}
