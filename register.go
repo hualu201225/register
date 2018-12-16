@@ -12,12 +12,15 @@ func main() {
 	// cookie := Cookie.GetCookie("3625290027")
 	// fmt.Printf(cookie)
 
-	Captcha := &Identity.Captcha{}
-	yzmImg := Captcha.GetCaptchaImgBase64()
+	// Captcha := &Identity.Captcha{}
+	// yzmImg := Captcha.GetCaptchaImgBase64()
 	// fmt.Printf(yzmImg)
-	yzmResult := Captcha.GetYzmResultByImg(yzmImg)
-	fmt.Println(yzmResult)
+	// yzmResult := Captcha.GetYzmResultByImg(yzmImg)
+	// fmt.Println(yzmResult)
 	//print_map(res)
+
+	login := &Identity.RegLogin{}
+	login.Login()
 }
 
 //解析 map[string]interface{} 数据格式
