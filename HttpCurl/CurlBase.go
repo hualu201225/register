@@ -7,7 +7,6 @@ import(
 	"strings"
 	"fmt"
 	"io/ioutil"
-	"net/http/cookiejar"
 )
 
 type HttpCurl struct {
@@ -21,10 +20,8 @@ type HttpCurl struct {
 	postData map[string]string
 	//是否需要保存cookie
 	needCookies bool
-	//存放cookie
-	curCookies []*http.Cookie
-
-	curCookieJar *cookiejar.Jar
+	//响应的cookie字符串
+	responseCookie string
 }
 
 func (HttpCurl *HttpCurl) SetUrl(url string) {
@@ -63,42 +60,49 @@ func (HttpCurl *HttpCurl) getGetUrl() string {
 	return url
 }
 
-func (HttpCurl *HttpCurl) initCookieJar() {
-	HttpCurl.curCookies = nil
-	HttpCurl.curCookieJar, _ = cookiejar.New(nil)
+func (HttpCurl *HttpCurl) saveCookies(response *http.Response) {
+	cookies := response.Cookies()
+	var cookieStr string
+    for _, cookie := range cookies {
+    	//cookieStr = cookieStr + "；" + cookie    
+        cookieStr = cookieStr + fmt.Sprintf("%s;", cookie)
+    }	
+    // fmt.Println(cookieStr)
+    HttpCurl.responseCookie = cookieStr
 }
 
-func (HttpCurl *HttpCurl) printCurCookies() {
-    var cookieNum int = len(HttpCurl.curCookies);
-    fmt.Printf("cookieNum=%d\r\n", cookieNum)
-    for i := 0; i < cookieNum; i++ {
-        var curCk *http.Cookie = HttpCurl.curCookies[i];
-        fmt.Printf("curCk.Raw=%s\r\n", curCk.Value)
-    }
+func (HttpCurl *HttpCurl) GetCookies() string {
+	fmt.Println(HttpCurl.responseCookie)
+	return HttpCurl.responseCookie
 }
 
-
-func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
-	HttpCurl.initCookieJar()
-	client := &http.Client{
-		Jar : HttpCurl.curCookieJar,
-	}
-	urlQuery := HttpCurl.getGetUrl()
-	fmt.Println(method)
-	fmt.Println(urlQuery)
-	//添加post参数
+func (HttpCurl *HttpCurl) transferPostData(method string) string {
 	var urlPost string
 	if (method == "POST") {
 		data := url.Values{}
 		for k, v := range HttpCurl.postData {
 			data.Add(k, v)
 		}
-		//u, _ := url.ParseRequestURI(urlQuery)
 		urlPost = data.Encode()
 	}
 	fmt.Printf(urlPost)
+	return urlPost
+}
 
-	//提交请求
+
+func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
+
+	client := &http.Client{}
+
+	//获取url
+	urlQuery := HttpCurl.getGetUrl()
+	fmt.Println(method)
+	fmt.Println(urlQuery)
+
+	//添加post参数
+	urlPost := HttpCurl.transferPostData(method)
+
+	//初始化请求
 	request, err := http.NewRequest(method, urlQuery, strings.NewReader(urlPost))
 	if (err != nil) {
 		panic("can not new request")
@@ -109,47 +113,27 @@ func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
 		request.Header.Add(k, v)
 	}
 
+	//发送请求
 	response, err := client.Do(request)
 	if (err != nil) {
-		fmt.Println(err)
-		panic("can not get response")
+		panic(err)
 	}
 
-	defer response.Body.Close()	
+	defer response.Body.Close()
+
+	//cookie处理
+	HttpCurl.saveCookies(response)
 
 	str, err := ioutil.ReadAll(response.Body)
-	// fmt.Printf(string(str))	
-	// fmt.Println(response.StatusCode)
+
+	fmt.Printf(string(str))	
+	fmt.Println(response.StatusCode)
 	if (err != nil) {
 		fmt.Printf(string(str))
-		panic("can not read response")
+		panic(err)
 	}
 
-	http.HandleFunc("/", HttpCurl.set)
-	http.HandleFunc("/read", HttpCurl.read)
-
-	HttpCurl.curCookies = HttpCurl.curCookieJar.Cookies(request.URL)
-	HttpCurl.printCurCookies()
 	return str, err
-}
-
-func (HttpCurl *HttpCurl) set(w http.ResponseWriter, req *http.Request) {
-    http.SetCookie(w, &http.Cookie{
-        Name:  "my-cookie",
-        Value: "some value",
-    })
-    //fmt.Fprintln(w, "COOKIE WRITTEN - CHECK YOUR BROWSER")
-}
-
-func (HttpCurl *HttpCurl) read(w http.ResponseWriter, req *http.Request) {
-
-    c, err := req.Cookie("my-cookie")
-    if err != nil {
-        http.Error(w, http.StatusText(400), http.StatusBadRequest)
-        return
-    }
-
-    fmt.Fprintln(w, "YOUR COOKIE:", c)
 }
 
 func (HttpCurl *HttpCurl) GetContentsFromUrl() ([]byte, error) {
