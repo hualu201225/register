@@ -18,8 +18,6 @@ type HttpCurl struct {
 	queries map[string]string
 	//post参数
 	postData map[string]string
-	//是否需要保存cookie
-	needCookies bool
 	//响应的cookie字符串
 	responseCookie string
 }
@@ -38,10 +36,6 @@ func (HttpCurl *HttpCurl) SetQueries(queries map[string]string) {
 
 func (HttpCurl *HttpCurl) SetPostData(postData map[string]string) {
 	HttpCurl.postData = postData
-}
-
-func (HttpCurl *HttpCurl) SetNeedCookie(isNeedCookie bool) {
-	HttpCurl.needCookies = isNeedCookie
 }
 
 func (HttpCurl *HttpCurl) getGetUrl() string {
@@ -67,12 +61,11 @@ func (HttpCurl *HttpCurl) saveCookies(response *http.Response) {
     	//cookieStr = cookieStr + "；" + cookie    
         cookieStr = cookieStr + fmt.Sprintf("%s;", cookie)
     }	
-    // fmt.Println(cookieStr)
+    
     HttpCurl.responseCookie = cookieStr
 }
 
 func (HttpCurl *HttpCurl) GetCookies() string {
-	fmt.Println(HttpCurl.responseCookie)
 	return HttpCurl.responseCookie
 }
 
@@ -85,7 +78,7 @@ func (HttpCurl *HttpCurl) transferPostData(method string) string {
 		}
 		urlPost = data.Encode()
 	}
-	fmt.Printf(urlPost)
+	// fmt.Printf(urlPost)
 	return urlPost
 }
 
@@ -126,7 +119,7 @@ func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
 
 	str, err := ioutil.ReadAll(response.Body)
 
-	fmt.Printf(string(str))	
+	// fmt.Printf(string(str))	
 	fmt.Println(response.StatusCode)
 	if (err != nil) {
 		fmt.Printf(string(str))
