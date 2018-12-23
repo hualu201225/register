@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"regexp"
+
 )
 
 //挂号登陆类
@@ -19,15 +20,41 @@ type RegLogin struct {
 	tokenCookie string
 }
 
+func (RegLogin *RegLogin) SetUsername(username string) {
+	RegLogin.username = username
+}
+
+func (RegLogin *RegLogin) SetPassword(password string) {
+	RegLogin.password = password
+}
+
 func (RegLogin *RegLogin) init() {
 	RegLogin.websiteUrl = "http://www.zj12580.cn/index?t=1545462434499"
 	RegLogin.loginurl = "http://www.zj12580.cn/login"
-	RegLogin.username = "362529199402120027"
-	RegLogin.password = "huav587lu"
+
+	//校验用户身份证密码等信息是否正确
+	if (!RegLogin.checkUser()) {
+		panic("username or password is not correct")
+	}
+
+	//设置token和初始cookie
 	RegLogin.setTokenAndCookie()
 }
 
+func (RegLogin *RegLogin) checkUser() bool {
+	if (len(RegLogin.username) == 0 || len(RegLogin.password) == 0) {
+		return false
+	}
+ 
+	//校验身份证格式 @TODO
+
+
+	return true
+}
+
+
 func (RegLogin *RegLogin) setTokenAndCookie() {
+	//首先访问12580官网
 	httpCurl := &HttpCurl.HttpCurl{}
 	httpCurl.SetUrl(RegLogin.websiteUrl)
 	httpCurl.GetContentsFromUrl()
@@ -47,9 +74,6 @@ func (RegLogin *RegLogin) SetCaptcha(captcha string) {
 }
 
 func (RegLogin *RegLogin) getMd5Passwd() string {
-	// data := []byte(RegLogin.password)
-	// has := md5.Sum(data)
-	// md5str1 := fmt.Sprintf("%x", has)
 	md5Ctx := md5.New()
     md5Ctx.Write([]byte(RegLogin.password))
     cipherStr := md5Ctx.Sum(nil)
@@ -57,28 +81,34 @@ func (RegLogin *RegLogin) getMd5Passwd() string {
 }
 
 func (RegLogin *RegLogin) getPostData() map[string]string {
+	//获取base64img
+	Captcha := &Captcha{}
+	base64Img := Captcha.GetCaptchaImgBase64()
+	//获取验证码
+	RegLogin.captcha = Captcha.GetYzmResultByImg(base64Img)
+	fmt.Println(RegLogin.captcha)
 	md5pwd := RegLogin.getMd5Passwd()
 	postData := make(map[string]string)
 	postData["username"] = RegLogin.username
 	postData["pwd"] = md5pwd
 	postData["password"] = md5pwd
 	postData["token"] = RegLogin.token
-	postData["captcha"] = "fadsf" //RegLogin.captcha
+	postData["captcha"] = RegLogin.captcha
 	postData["pwdIrregular"] = ""
 	postData["pwdFourNum"] = ""
 	postData["btnlogin"] = "登 录"
 	postData["rememberMe"] = "1"
-	fmt.Println(RegLogin.getMd5Passwd())
 	return postData
 }
 
 func (RegLogin *RegLogin) getHeaders() map[string]string {
 	headers := make(map[string]string)
-	headers["Upgrade-Insecure-Requests"] = "1";
-	headers["Origin"] = "http://www.zj12580.cn";
-	headers["Host"] = "www.zj12580.cn";
-	headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
-	headers["Accept-Encoding"] = "gzip, deflate";
+	headers["Upgrade-Insecure-Requests"] = "1"
+	headers["Origin"] = "http://www.zj12580.cn"
+	headers["Host"] = "www.zj12580.cn"
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	headers["charset"] = "UTF-8"
+	headers["Accept-Encoding"] = "gzip, deflate"
 	headers["Cookie"] = RegLogin.tokenCookie
 
 	return headers
@@ -98,14 +128,15 @@ func (RegLogin *RegLogin) Login() {
 	//设置header头
 	headers := RegLogin.getHeaders()
 	httpCurl.SetHeaders(headers)
-
-	//获取登陆结果
-	result, _ := httpCurl.GetContentsFromUrl()
-
-	fmt.Printf(string(result))
+	return
+	//登陆
+	httpCurl.GetContentsFromUrl()
 
 	//保存登陆后的cookie
 	cookieStr := httpCurl.GetCookies()
 	Cookie := &Cookie{}
+	//需要把所有的cookie合到一块才能正常供后面的页面登陆
+	cookieStr = cookieStr + ";" + RegLogin.tokenCookie + RegLogin.username + "=1;"
+	//保存
 	Cookie.SetCookie(cookieStr, RegLogin.username)
 }

@@ -1,26 +1,42 @@
 package main
 
 import (
- 	"./Identity"
+ 	_"./Identity"
  	"fmt"
+ 	_"./HttpCurl"
+ 	"./Register"
 )
 
 func main() {
+	//获取当前用户的cookie
 	// Cookie := &Identity.Cookie{};
-	// Cookie.SetCookie("432412341234发大水发射点发", "3625290027");
+	// cookie := Cookie.GetCookie("362529199402120027")
 
-	// cookie := Cookie.GetCookie("3625290027")
-	// fmt.Printf(cookie)
+	// httpCurl := &HttpCurl.HttpCurl{}
+	// httpCurl.SetUrl("http://www.zj12580.cn/order/queryOrderRecord?t=0.6084146469394638")
 
-	// Captcha := &Identity.Captcha{}
-	// yzmImg := Captcha.GetCaptchaImgBase64()
-	// fmt.Printf(yzmImg)
-	// yzmResult := Captcha.GetYzmResultByImg(yzmImg)
-	// fmt.Println(yzmResult)
-	//print_map(res)
+	// headers := make(map[string]string)
+	// headers["Cookie"] = cookie
+	// httpCurl.SetHeaders(headers)
 
-	login := &Identity.RegLogin{}
-	login.Login()
+	// result, _ := httpCurl.GetContentsFromUrl()
+	// fmt.Printf(string(result))
+
+	// Register := &Register.Register{}
+	// Register.Usercardno = "362529199402120027"
+	// Register.Password = "huav587lu"
+	// Register.HosName = "杭州西溪医院"
+	// Register.DeptName = "呼吸内科"
+	// Register.DocName = ""
+	// Register.OrderDate = "20181224"
+	// Register.OrderPeriod = "am"
+	// Register.OrderStime = "08:30"
+	// Register.OrderEtime = "11:00"
+	// Register.Register()
+
+	Hospital := &Register.Hospital{}
+	Hospital.SaveHospitalInfo()
+
 }
 
 //解析 map[string]interface{} 数据格式

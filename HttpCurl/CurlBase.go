@@ -56,9 +56,12 @@ func (HttpCurl *HttpCurl) getGetUrl() string {
 
 func (HttpCurl *HttpCurl) saveCookies(response *http.Response) {
 	cookies := response.Cookies()
+
+	fmt.Printf("response Cookies :%v", cookies)
 	var cookieStr string
     for _, cookie := range cookies {
     	//cookieStr = cookieStr + "；" + cookie    
+    	// fmt.Sprintf("%s", cookie)
         cookieStr = cookieStr + fmt.Sprintf("%s;", cookie)
     }	
     
