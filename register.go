@@ -22,21 +22,26 @@ func main() {
 	// result, _ := httpCurl.GetContentsFromUrl()
 	// fmt.Printf(string(result))
 
-	// Register := &Register.Register{}
-	// Register.Usercardno = "362529199402120027"
-	// Register.Password = "huav587lu"
-	// Register.HosName = "杭州西溪医院"
-	// Register.DeptName = "呼吸内科"
-	// Register.DocName = ""
-	// Register.OrderDate = "20181224"
-	// Register.OrderPeriod = "am"
-	// Register.OrderStime = "08:30"
-	// Register.OrderEtime = "11:00"
-	// Register.Register()
+	Register := &Register.Register{}
+	Register.Usercardno = "362529199402120027"
+	Register.Password = "huav587lu"
+	Register.HosName = "杭州市西溪医院"
+	Register.DeptName = "呼吸内科"
+	Register.DocName = ""
+	Register.OrderDate = "20181224"
+	Register.OrderPeriod = "am"
+	Register.OrderStime = "08:30"
+	Register.OrderEtime = "11:00"
+	Register.Register()
 
-	Hospital := &Register.Hospital{}
-	Hospital.SaveHospitalInfo()
-
+	// Hospital := &Register.Hospital{}
+	// // Hospital.SaveHospitalInfo()
+	// Hospital.CurrentAreaName = "杭州"
+	// Hospital.CurrentHosName = "杭州大同中医门诊部"
+	// Hospital.CurrentDeptName = "中医妇科"
+	// Hospital.CurrentDocName = "包汝中"
+	// Hospital.GetDetailInfo()
+	// fmt.Printf(Hospital.CurrentDocId)
 }
 
 //解析 map[string]interface{} 数据格式

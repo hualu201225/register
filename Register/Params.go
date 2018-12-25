@@ -6,6 +6,7 @@ import(
 
 type Params struct {
 	RegisterObj *Register
+	Hospital *Hospital
 }
 
 func (Params *Params) CheckInfo() bool {
@@ -29,11 +30,8 @@ func (Params *Params) SetDefaultValues() {
 	//设置医院相关参数
 	Params.SetHospitalValue()
 
-	//设置科室相关参数
-	Params.SetDeptValue()
-
-	// //设置医生相关参数
-	Params.SetDoctorValue()
+	//设置符合要求的可选的最优号码
+	Params.SetRegisterNumEtc()
 }
 
 func (Params *Params) SetDefaultValue() {
@@ -58,17 +56,16 @@ func (Params *Params) SetDefaultValue() {
 	}
 }
 
-//根据医院名称获取医院id
+//获取医院、科室、医生等详细信息
 func (Params *Params) SetHospitalValue() {
-
+	Params.Hospital = &Hospital{}
+	Params.Hospital.CurrentAreaName = Params.RegisterObj.Area
+	Params.Hospital.CurrentHosName = Params.RegisterObj.HosName
+	Params.Hospital.CurrentDeptName = Params.RegisterObj.DeptName
+	Params.Hospital.CurrentDocName = Params.RegisterObj.DocName
+	Params.Hospital.GetDetailInfo()
 }
 
-//根据医院、科室名称获取科室id
-func (Params *Params) SetDeptValue() {
-
-}
-
-//根据医院、科室、医生名称获取医生id
-func (Parmas *Params) SetDoctorValue() {
-
+func (Parmas *Parmas) SetRegisterNumEtc() {
+	
 }

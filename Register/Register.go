@@ -1,5 +1,9 @@
 package Register
 
+import(
+	"fmt"
+)
+
 type Register struct {
 	//用户身份证号
 	Usercardno string
