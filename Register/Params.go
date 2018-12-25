@@ -66,6 +66,19 @@ func (Params *Params) SetHospitalValue() {
 	Params.Hospital.GetDetailInfo()
 }
 
+//获取符合要求的最优号码（有无指定医生的区别处理）
 func (Parmas *Parmas) SetRegisterNumEtc() {
+	if (len(Params.Hospital.CurrentDocName) == 0) {
+		Parmas.setNormalNumEtc()
+	} else {
+		Params.setDocSpecificNumEtc()
+	}
+}
+
+func (Params *Params) setNormalNumEtc() {
+
+}
+
+func (Params *Params) setDocSpecificNumEtc() {
 	
 }
