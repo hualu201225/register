@@ -1,7 +1,11 @@
 package Register
 
 import(
-	_"fmt"
+	"fmt"
+	_"time"
+	"../HttpCurl"
+	"regexp"
+	_"strings"
 )
 
 type Params struct {
@@ -19,6 +23,11 @@ func (Params *Params) CheckInfo() bool {
 		len(Params.RegisterObj.OrderPeriod) == 0 ) {
 		return false
 	}
+
+	//挂号日期判断（最近7天的）
+	// regDateTimeStamp, _ := time.Parse("2016-01-02 00:00", Params.RegisterObj.OrderDate + " 00:00")
+	// fmt.Println(regDateTimeStamp.Unix())
+	// return false
 
 	return true
 }
@@ -67,11 +76,30 @@ func (Params *Params) SetHospitalValue() {
 }
 
 //获取符合要求的最优号码（有无指定医生的区别处理）
-func (Parmas *Parmas) SetRegisterNumEtc() {
-	if (len(Params.Hospital.CurrentDocName) == 0) {
-		Parmas.setNormalNumEtc()
-	} else {
-		Params.setDocSpecificNumEtc()
+func (Params *Params) SetRegisterNumEtc() {
+	//预约页面url
+	selectUrl := fmt.Sprintf("http://www.zj12580.cn/dept/queryDepartInfo/%s/%s/",Params.Hospital.CurrentHosId,Params.Hospital.CurrentDeptName)
+
+	httpCurl := &HttpCurl.HttpCurl{}
+	httpCurl.SetUrl(selectUrl)
+	str, _ := httpCurl.GetContentsFromUrl()
+	// fmt.Println(string(str))
+
+	resString := string(str)
+	reg := regexp.MustCompile("\\s+")
+    resString = reg.ReplaceAllString(resString, "")
+	// resString = strings.Replace(resString, " ", "", -1)
+	// resString = strings.Replace(resString, "\n", "", -1)
+	// resString = strings.Replace(resString, "\n", "", -1)
+
+	//获取预约列表
+	match := regexp.MustCompile("<form(.*)</form>")
+	matchArr := match.FindAllString(resString, -1)
+	fmt.Println(len(matchArr))
+	for _,param :=range matchArr {
+		fmt.Println(param)
+		fmt.Println("\n\r")
+		return
 	}
 }
 

@@ -1,7 +1,7 @@
 package Register
 
 import(
-	"fmt"
+	_"fmt"
 )
 
 type Register struct {
