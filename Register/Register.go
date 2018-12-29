@@ -32,6 +32,7 @@ type Register struct {
 	registerUrl string
 
 	RegInfo map[string]string
+	RegNum map[string]string
 }
 
 func (Register *Register) init() {	

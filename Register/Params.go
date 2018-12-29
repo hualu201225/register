@@ -6,7 +6,7 @@ import(
 	"../HttpCurl"
 	"regexp"
 	"strings"
-	_"encoding/json"
+	"encoding/json"
 	"strconv"
 	"../Identity"
 )
@@ -91,29 +91,9 @@ func (Params *Params) SetRegisterNumEtc() {
 	httpCurl.SetUrl(selectUrl)
 	str, _ := httpCurl.GetContentsFromUrl()
 
-	//页面信息格式化
-	resString := string(str)
-	reg := regexp.MustCompile("\\s+")
-    resString = reg.ReplaceAllString(resString, "")
-
     //正则匹配挂号信息
-	match := regexp.MustCompile(`data-idx="(?P<idx>\d+)"data-type="per"><formaction="/order/num"method="get"name="orderInfo"><inputtype="hidden"name="hisSchemeId"value=""><inputtype="hidden"name="schemeId"value="(?P<schemeId>\d+)"><inputtype="hidden"name="orderDate"value="(?P<orderDate>\d+)"><inputtype="hidden"name="hosId"value="(?P<hosId>\d+)"><inputtype="hidden"name="hosName"value="(?P<hosName>[\p{Han}|(|)]+)"><inputtype="hidden"name="deptId"value="(?P<deptId>\d+)"><inputtype="hidden"name="deptName"value="(?P<deptName>[\p{Han}]+)"><inputtype="hidden"name="docTitle"value="(?P<docTitle>[\p{Han}]{0,})"><inputtype="hidden"name="docId"value="(?P<docId>\d{0,})"><inputtype="hidden"name="docName"value="(?P<docName>[\p{Han}]{0,})"><inputtype="hidden"name="regFee"value="(?P<regFee>\d+)"><inputtype="hidden"name="takeNumAddr"value="(?P<takeNumAddr>\d{0,})"><inputtype="hidden"name="resTimeSign"value="(?P<resTimeSign>\d{0,})"><inputtype="submit"class="btnyy"value="&#13;&#10;预约&#13;&#10;\d+"title="总放号数(?P<totalNum>\d+)人次,剩余(?P<remainNum>\d+)`)
-	matchArr := match.FindAllStringSubmatch(resString, -1)
-
-	groupNames := match.SubexpNames()
-	var result []map[string]string
-	//循环每行
-	for _,param :=range matchArr {
-		m := make(map[string]string)
-		// 对每一行生成一个map
-	    for j, name := range groupNames {
-	        if j != 0 && name != "" {
-	            m[name] = strings.TrimSpace(param[j])
-	        }
-	    }
-	    result = append(result, m)
-	}	
-
+	mustCompileStr := `data-idx="(?P<idx>\d+)"data-type="per"><formaction="/order/num"method="get"name="orderInfo"><inputtype="hidden"name="hisSchemeId"value=""><inputtype="hidden"name="schemeId"value="(?P<schemeId>\d+)"><inputtype="hidden"name="orderDate"value="(?P<orderDate>\d+)"><inputtype="hidden"name="hosId"value="(?P<hosId>\d+)"><inputtype="hidden"name="hosName"value="(?P<hosName>[\p{Han}|(|)]+)"><inputtype="hidden"name="deptId"value="(?P<deptId>\d+)"><inputtype="hidden"name="deptName"value="(?P<deptName>[\p{Han}]+)"><inputtype="hidden"name="docTitle"value="(?P<docTitle>[\p{Han}]{0,})"><inputtype="hidden"name="docId"value="(?P<docId>\d{0,})"><inputtype="hidden"name="docName"value="(?P<docName>[\p{Han}]{0,})"><inputtype="hidden"name="regFee"value="(?P<regFee>\d+)"><inputtype="hidden"name="takeNumAddr"value="(?P<takeNumAddr>\d{0,})"><inputtype="hidden"name="resTimeSign"value="(?P<resTimeSign>\d{0,})"><inputtype="submit"class="btnyy"value="&#13;&#10;预约&#13;&#10;\d+"title="总放号数(?P<totalNum>\d+)人次,剩余(?P<remainNum>\d+)`
+	result := Params.parseRegReturn(string(str), mustCompileStr)
 	//结果格式化输出
 	// prettyResult, _ := json.MarshalIndent(result, "", "  ")
 	// fmt.Println(string(prettyResult))
@@ -163,12 +143,43 @@ func (Params *Params) SetBestNum() {
 	headers := make(map[string]string)
 	headers["Cookie"] = cookieStr
 	httpCurl.SetHeaders(headers)
-
 	str, _ := httpCurl.GetContentsFromUrl()
-	fmt.Println(string(str))
 
+	//获取解析后的结果集
+	mustCompileStr := `<inputtype="radio"name="num"id="num"value="(?P<numId>\d+),(?P<resTime>\d+:\d+),(?P<resNumber>\d+)`
+	result := Params.parseRegReturn(string(str), mustCompileStr)
+
+	if (len(result) >0 && len(result[0]) > 0) {
+		for i,v := range result[0] {
+			Params.RegisterObj.RegInfo[i] = v
+		}
+	}
+
+	//结果格式化输出
+	prettyResult, _ := json.MarshalIndent(Params.RegisterObj.RegInfo, "", "  ")
+	fmt.Println(string(prettyResult))
 }
 
-func (Params *Params) setDocSpecificNumEtc() {
-	
+func (Params *Params) parseRegReturn(returnStr string, mustCompileStr string) []map[string]string {
+	reg := regexp.MustCompile("\\s+")
+    selectNumStr := reg.ReplaceAllString(returnStr, "")
+
+    match := regexp.MustCompile(mustCompileStr)
+    matchArr := match.FindAllStringSubmatch(selectNumStr, -1)
+
+	groupNames := match.SubexpNames()
+	var result []map[string]string
+	//循环每行
+	for _,param :=range matchArr {
+		m := make(map[string]string)
+		// 对每一行生成一个map
+	    for j, name := range groupNames {
+	        if j != 0 && name != "" {
+	            m[name] = strings.TrimSpace(param[j])
+	        }
+	    }
+	    result = append(result, m)
+	}
+
+	return result	
 }
