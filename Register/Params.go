@@ -6,7 +6,9 @@ import(
 	"../HttpCurl"
 	"regexp"
 	"strings"
-	"encoding/json"
+	_"encoding/json"
+	"strconv"
+	"../Identity"
 )
 
 type Params struct {
@@ -40,8 +42,11 @@ func (Params *Params) SetDefaultValues() {
 	//设置医院相关参数
 	Params.SetHospitalValue()
 
-	//设置符合要求的可选的最优号码
+	//设置符合要求的挂号信息
 	Params.SetRegisterNumEtc()
+
+	//设置最优的号码
+	Params.SetBestNum()
 }
 
 func (Params *Params) SetDefaultValue() {
@@ -81,27 +86,19 @@ func (Params *Params) SetRegisterNumEtc() {
 	//预约页面url
 	selectUrl := fmt.Sprintf("http://www.zj12580.cn/dept/queryDepartInfo/%s/%s/",Params.Hospital.CurrentHosId,Params.Hospital.CurrentDeptName)
 
+	//获取页面信息
 	httpCurl := &HttpCurl.HttpCurl{}
 	httpCurl.SetUrl(selectUrl)
 	str, _ := httpCurl.GetContentsFromUrl()
-	// fmt.Println(string(str))
 
+	//页面信息格式化
 	resString := string(str)
-	// resString := "<tr><tdclass=\"td_t\">普通</td><tddata-1=\"\"data-type=\"per\">&nbsp;</td><tddata-2=\"\"data-type=\"per\">&nbsp;</td><tddata-idx=\"3\"data-type=\"per\"title=\"上午下午&nbsp;上午\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"0\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20181229\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><spanclass=\"cz\"onclick=\"alert('暂未放号或已过预约时间');\"title=\"总放号数11人次,剩余10人次,诊金10元\">预约</span></form></td><tddata-idx=\"4\"data-type=\"per\"title=\"上午下午&nbsp;下午\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"0\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20181229\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><spanonclick=\"alert('暂未放号或已过预约时间');\"class=\"cz\"title=\"总放号数11人次,剩余11人次,诊金10元\"alt=\"总放号数11人次,剩余11人次,诊金10元\">预约</span></form></td><tddata-idx=\"5\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12815339\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20181230\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"0\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约13\"title=\"总放号数13人次,剩余13人次,诊金10元\"alt=\"总放号数13人次,剩余13人次,诊金10元\"></form></td><tddata-idx=\"6\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12815339\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20181230\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"1\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约11\"title=\" 总放号数11人次,剩余11人次,诊金10元\"alt=\"总放号数11人次,剩余11人次,诊金10元\"></form></td><tddata-idx=\"7\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12820484\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20181231\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"0\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约14\"title=\"总放号数14人次,剩余14人次,诊金10元\"alt=\"总放号数14人次,剩余14人次,诊金10元\"></form></td><tddata-idx=\"8\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12820484\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20181231\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"1\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约12\"title=\"总放号数12人次,剩余12人次,诊金10元\"alt=\"总放号数12人次,剩余12人次,诊金10元\"></form></td><tddata-idx=\"9\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12829130\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190101\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"0\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约10\"title=\"总放号数10人次,剩余10人次,诊金10元\"alt=\"总放号数10人次,剩余10人次,诊金10元\"></form></td><tddata-idx=\"10\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12829130\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190101\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"1\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约11\"title=\"总放号数11人次,剩余11人次,诊金10元\"alt=\"总放号数11人次,剩余11人次,诊金10元\"></form></td><tddata-idx=\"11\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12837447\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190102\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"0\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约12\"title=\"总放号数12人次,剩余12人次,诊金10元\"alt=\"总放号数12人次,剩余12人次,诊金10元\"></form></td><tddata-idx=\"12\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12837447\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190102\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"1\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约11\"title=\"总放号数11人次,剩余11人次,诊金10元\"alt=\"总放号数11人次,剩余11人次,诊 金10元\"></form></td><tddata-idx=\"13\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12852345\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190103\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六 医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"0\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约12\"title=\"总放号数12人次,剩余12人次,诊金10元\"alt=\"总放号数12人次,剩 余12人次,诊金10元\"></form></td><tddata-idx=\"14\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12852345\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190103\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西 溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"1\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约12\"title=\"总放号数12人次,剩余12人次,诊金10元\"alt=\"总放号 数12人次,剩余12人次,诊金10元\"></form></td><tddata-idx=\"15\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12858729\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190104\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸 内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"0\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约12\"title=\"总放号数12人次,剩余12人次,诊金10元\"alt=\"总放号数12人次,剩余12人次,诊金10元\"></form></td><tddata-idx=\"16\"data-type=\"per\"><formaction=\"/order/num\"method=\"get\"name=\"orderInfo\"><inputtype=\"hidden\"name=\"hisSchemeId\"value=\"\"><inputtype=\"hidden\"name=\"schemeId\"value=\"12858729\"><inputtype=\"hidden\"name=\"orderDate\"value=\"20190104\"><inputtype=\"hidden\"name=\"hosId\"value=\"057166\"><inputtype=\"hidden\"name=\"hosName\"value=\"杭州市西溪医院(市六医院)\"><inputtype=\"hidden\"name=\"deptId\"value=\"10238\"><inputtype=\"hidden\"name=\"deptName\"value=\"呼吸内科\"><inputtype=\"hidden\"name=\"docTitle\"value=\"\"><inputtype=\"hidden\"name=\"docId\"value=\"\"><inputtype=\"hidden\"name=\"docName\"value=\"普通\"><inputtype=\"hidden\"name=\"regFee\"value=\"10\"><inputtype=\"hidden\"name=\"takeNumAddr\"value=\"\"><inputtype=\"hidden\"name=\"resTimeSign\"value=\"1\"><inputtype=\"submit\"class=\"btnyy\"value=\"预约9\"title=\"总放号数9人次,剩余9人次,诊金10元\"alt=\"总放号数9人次,剩余9人次,诊金10元\"></form></td></tr>"
-								 
 	reg := regexp.MustCompile("\\s+")
     resString = reg.ReplaceAllString(resString, "")
-    fmt.Println(resString)
 
-	// resString = strings.Replace(resString, " ", "", -1)
-	// resString = strings.Replace(resString, "\n", "", -1)
-	// resString = strings.Replace(resString, "\n", "", -1)
-
-	//获取预约列表
-	// match := regexp.MustCompile(`data-idx="(?P<idx>\d+)(.*)name="schemeId"value="(?P<schemeId>\d+)">(.*)name="orderDate"value="(?P<orderDate>\d+)">`)
+    //正则匹配挂号信息
 	match := regexp.MustCompile(`data-idx="(?P<idx>\d+)"data-type="per"><formaction="/order/num"method="get"name="orderInfo"><inputtype="hidden"name="hisSchemeId"value=""><inputtype="hidden"name="schemeId"value="(?P<schemeId>\d+)"><inputtype="hidden"name="orderDate"value="(?P<orderDate>\d+)"><inputtype="hidden"name="hosId"value="(?P<hosId>\d+)"><inputtype="hidden"name="hosName"value="(?P<hosName>[\p{Han}|(|)]+)"><inputtype="hidden"name="deptId"value="(?P<deptId>\d+)"><inputtype="hidden"name="deptName"value="(?P<deptName>[\p{Han}]+)"><inputtype="hidden"name="docTitle"value="(?P<docTitle>[\p{Han}]{0,})"><inputtype="hidden"name="docId"value="(?P<docId>\d{0,})"><inputtype="hidden"name="docName"value="(?P<docName>[\p{Han}]{0,})"><inputtype="hidden"name="regFee"value="(?P<regFee>\d+)"><inputtype="hidden"name="takeNumAddr"value="(?P<takeNumAddr>\d{0,})"><inputtype="hidden"name="resTimeSign"value="(?P<resTimeSign>\d{0,})"><inputtype="submit"class="btnyy"value="&#13;&#10;预约&#13;&#10;\d+"title="总放号数(?P<totalNum>\d+)人次,剩余(?P<remainNum>\d+)`)
 	matchArr := match.FindAllStringSubmatch(resString, -1)
-	fmt.Println(len(matchArr))
 
 	groupNames := match.SubexpNames()
 	var result []map[string]string
@@ -117,19 +114,58 @@ func (Params *Params) SetRegisterNumEtc() {
 	    result = append(result, m)
 	}	
 
-	for i, v := range result {
-		if (v["orderDate"] == Params.RegisterObj.OrderDate) {
-			
-		}
-	}
-
 	//结果格式化输出
 	// prettyResult, _ := json.MarshalIndent(result, "", "  ")
 	// fmt.Println(string(prettyResult))
-	return
+
+	//解析结果获取正确的信息
+	Params.getAvailableRegInfo(result)
 }
 
-func (Params *Params) setNormalNumEtc() {
+func (Params *Params) getAvailableRegInfo(result []map[string]string) {
+	var beFixed int
+	if (Params.RegisterObj.OrderPeriod == "am") {
+		beFixed = 1
+	} else {
+		beFixed = 2
+	}
+	var isPeriodMatch bool
+	var left int
+	isPeriodMatch = false
+	for _, v := range result {
+		//判断上午/下午是否匹配
+		idx, _ := strconv.Atoi(v["idx"])
+		left = idx % beFixed
+		if ( left == 0) {
+			isPeriodMatch = true
+		}
+
+		//如果日期和上午/下午时间段都能对上，则设置挂号信息
+		if (isPeriodMatch == true && v["orderDate"] == Params.RegisterObj.OrderDate) {
+			Params.RegisterObj.RegInfo = v
+			return
+		}
+	}
+
+	panic("there is no available register num")
+}
+
+func (Params *Params) SetBestNum() {
+	orderUrl := "http://www.zj12580.cn/order/num"
+	httpCurl := &HttpCurl.HttpCurl{}
+	httpCurl.SetUrl(orderUrl)
+	httpCurl.SetQueries(Params.RegisterObj.RegInfo)
+	httpCurl.SetNeedUrlparse(true)
+
+	Cookie := &Identity.Cookie{}
+	cookieStr := Cookie.GetCookie(Params.RegisterObj.Usercardno)
+
+	headers := make(map[string]string)
+	headers["Cookie"] = cookieStr
+	httpCurl.SetHeaders(headers)
+
+	str, _ := httpCurl.GetContentsFromUrl()
+	fmt.Println(string(str))
 
 }
 

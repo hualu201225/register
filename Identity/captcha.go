@@ -19,8 +19,8 @@ func (Captcha *Captcha) init() {
 	Captcha.headerHost = "www.zj12580.cn"
 	Captcha.base64ImgUrl = "http://www.zj12580.cn/captcha"
 	Captcha.yzmScanResUrl = "https://302307.market.alicloudapi.com/ocr/captcha"
-    // Captcha.yzmAppcode = "a924d95422454ad4a335250b534e419a"
-	Captcha.yzmAppcode = "a924d95422454ad4a335250fadsfasdfasb534e419a"
+    Captcha.yzmAppcode = "a924d95422454ad4a335250b534e419a"
+	// Captcha.yzmAppcode = "a924d95422454ad4a335250fadsfasdfasb534e419a"
 }
 
 //获取base64的验证码图片

@@ -128,7 +128,7 @@ func (RegLogin *RegLogin) Login() {
 	//设置header头
 	headers := RegLogin.getHeaders()
 	httpCurl.SetHeaders(headers)
-	return
+
 	//登陆
 	httpCurl.GetContentsFromUrl()
 

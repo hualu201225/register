@@ -22,17 +22,33 @@ func main() {
 	// result, _ := httpCurl.GetContentsFromUrl()
 	// fmt.Printf(string(result))
 
+	//登陆操作=====================
+	// captcha := &Identity.Captcha{}
+	// base64Img := captcha.GetCaptchaImgBase64()
+	// captchaStr := captcha.GetYzmResultByImg(base64Img)
+
+	// fmt.Printf(captchaStr)
+
+	// login := &Identity.RegLogin{}
+	// login.SetUsername("362529199402120027")
+	// login.SetPassword("huav587lu")
+	// login.SetCaptcha(captchaStr)
+	// login.Login()
+	//===============================
+
+	//挂号操作=============================
 	Register := &Register.Register{}
 	Register.Usercardno = "362529199402120027"
 	Register.Password = "huav587lu"
 	Register.HosName = "杭州市西溪医院"
 	Register.DeptName = "呼吸内科"
 	Register.DocName = ""
-	Register.OrderDate = "20181224"
-	Register.OrderPeriod = "am"
+	Register.OrderDate = "20181230"
+	Register.OrderPeriod = "pm"
 	Register.OrderStime = "08:30"
 	Register.OrderEtime = "11:00"
 	Register.Register()
+	//======================================
 
 	// Hospital := &Register.Hospital{}
 	// // Hospital.SaveHospitalInfo()

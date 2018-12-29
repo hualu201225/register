@@ -20,10 +20,16 @@ type HttpCurl struct {
 	postData map[string]string
 	//响应的cookie字符串
 	responseCookie string
+
+	needUrlParse bool
 }
 
 func (HttpCurl *HttpCurl) SetUrl(url string) {
 	HttpCurl.url = url
+}
+
+func (HttpCurl *HttpCurl) SetNeedUrlparse(isneed bool) {
+	HttpCurl.needUrlParse = isneed
 }
 
 func (HttpCurl *HttpCurl) SetHeaders(headers map[string]string) {
@@ -39,19 +45,27 @@ func (HttpCurl *HttpCurl) SetPostData(postData map[string]string) {
 }
 
 func (HttpCurl *HttpCurl) getGetUrl() string {
-	url := HttpCurl.url
+	urlNormal := HttpCurl.url
+
+	var urlStr string
 	//get参数处理
 	if (HttpCurl.queries != nil) {
 		//HttpCurl.queries = Common.MapTrans.MapToString(HttpCurl.queries)
-		url = url + "?1=1&"
+		urlStr = "?1=1&"
 		queries := make([]string, 0, len(HttpCurl.queries))
 		for k, v := range HttpCurl.queries {
 			queries = append(queries, k + "=" + v)
 		}
-		url = url + strings.Join(queries, "&")
+		urlStr = urlStr + strings.Join(queries, "&")
 	}
-
-	return url
+	
+	if (HttpCurl.needUrlParse == true) {
+		urlParse, _ := url.Parse(urlStr)
+		urlStr = "?" + urlParse.Query().Encode()
+	}
+	
+	urlStr = urlNormal + urlStr
+	return urlStr
 }
 
 func (HttpCurl *HttpCurl) saveCookies(response *http.Response) {

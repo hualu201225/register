@@ -30,6 +30,8 @@ type Register struct {
 	checkUrl string
 	//预约url
 	registerUrl string
+
+	RegInfo map[string]string
 }
 
 func (Register *Register) init() {	
