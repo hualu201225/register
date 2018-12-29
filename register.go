@@ -43,8 +43,8 @@ func main() {
 	Register.HosName = "杭州市西溪医院"
 	Register.DeptName = "呼吸内科"
 	Register.DocName = ""
-	Register.OrderDate = "20181231"
-	Register.OrderPeriod = "pm"
+	Register.OrderDate = "20190101"
+	Register.OrderPeriod = "am"
 	Register.OrderStime = "08:30"
 	Register.OrderEtime = "11:00"
 	Register.Register()
