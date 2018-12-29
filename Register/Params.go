@@ -4,7 +4,8 @@ import(
 	"fmt"
 	_"time"
 	"../HttpCurl"
-	"regexp"
+	"../Common"
+	_"regexp"
 	"strings"
 	"encoding/json"
 	"strconv"
@@ -138,10 +139,10 @@ func (Params *Params) SetBestNum() {
 	httpCurl.SetNeedUrlparse(true)
 
 	Cookie := &Identity.Cookie{}
-	cookieStr := Cookie.GetCookie(Params.RegisterObj.Usercardno)
+	Params.RegisterObj.CookieStr = Cookie.GetCookie(Params.RegisterObj.Usercardno)
 
 	headers := make(map[string]string)
-	headers["Cookie"] = cookieStr
+	headers["Cookie"] = Params.RegisterObj.CookieStr
 	httpCurl.SetHeaders(headers)
 	str, _ := httpCurl.GetContentsFromUrl()
 
@@ -150,9 +151,13 @@ func (Params *Params) SetBestNum() {
 	result := Params.parseRegReturn(string(str), mustCompileStr)
 
 	if (len(result) >0 && len(result[0]) > 0) {
+		num := ""
 		for i,v := range result[0] {
 			Params.RegisterObj.RegInfo[i] = v
+			num = num + v + ","
 		}
+
+		Params.RegisterObj.RegInfo["num"] = strings.TrimSuffix(num, ",")
 	}
 
 	//结果格式化输出
@@ -161,25 +166,7 @@ func (Params *Params) SetBestNum() {
 }
 
 func (Params *Params) parseRegReturn(returnStr string, mustCompileStr string) []map[string]string {
-	reg := regexp.MustCompile("\\s+")
-    selectNumStr := reg.ReplaceAllString(returnStr, "")
-
-    match := regexp.MustCompile(mustCompileStr)
-    matchArr := match.FindAllStringSubmatch(selectNumStr, -1)
-
-	groupNames := match.SubexpNames()
-	var result []map[string]string
-	//循环每行
-	for _,param :=range matchArr {
-		m := make(map[string]string)
-		// 对每一行生成一个map
-	    for j, name := range groupNames {
-	        if j != 0 && name != "" {
-	            m[name] = strings.TrimSpace(param[j])
-	        }
-	    }
-	    result = append(result, m)
-	}
-
-	return result	
+	Common := &Common.Func{}
+	result := Common.ParseRegReturn(returnStr, mustCompileStr)
+	return result
 }

@@ -1,7 +1,11 @@
 package Register
 
 import(
-	_"fmt"
+	"fmt"
+	"../HttpCurl"
+	"../Identity"
+	"../Common"
+	_"encoding/json"
 )
 
 type Register struct {
@@ -32,7 +36,9 @@ type Register struct {
 	registerUrl string
 
 	RegInfo map[string]string
-	RegNum map[string]string
+	CookieStr string
+	base64Img string
+	captcha string
 }
 
 func (Register *Register) init() {	
@@ -52,5 +58,80 @@ func (Register *Register) init() {
 func (Register *Register) Register() {
 	//挂号信息初始化
 	Register.init()
+
+	//首先请求一次order/check页面
+	Register.queryOrderCheck()
+
+	//重置验证码
+	Register.resetYzmImg()
+
+	//预提交挂号信息
+	Register.preReg()
+
+	//获取有效验证码
+	Register.setYesYzm()
+
+	//提交挂号信息
+	Register.saveRegInfo()
+
+}
+
+func (Register *Register) setYesYzm() {
+	captcha := &Identity.Captcha{}
+	Register.captcha = captcha.GetYzmResultByImg(Register.base64Img)
+	fmt.Printf(Register.captcha)
+}
+
+//预提交挂号信息
+func (Register *Register) preReg() {
+	Register.captcha = "3213"
+	str := Register.saveRegInfo()
+
+	//提取页面上的验证码
+	mustCompile := `inputtype="hidden"id="resultYzm"value="(?P<base64Img>.*)"><inputtype="hidden"id="resultCode"`
+	CommonFunc := &Common.Func{}
+	result := CommonFunc.ParseRegReturn(string(str), mustCompile)
+	
+	Register.base64Img = result[0]["base64Img"]
+}
+
+func (Register *Register) saveRegInfo() []byte {
+	Register.registerUrl = fmt.Sprintf("http://www.zj12580.cn/order/save?code=%s&yzmType=6", Register.captcha)
+
+	Register.RegInfo["flag"] = "-1"
+	httpCurl := &HttpCurl.HttpCurl{}
+	httpCurl.SetUrl(Register.registerUrl)
+	httpCurl.SetPostData(Register.RegInfo)
+
+	headers := make(map[string]string)
+	headers["Cookie"] = Register.CookieStr
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	headers["Upgrade-Insecure-Requests"] = "1"
+	httpCurl.SetHeaders(headers)
+	str, _ := httpCurl.GetContentsFromUrl()
+
+	return str
+}
+
+//重置验证码图片
+func (Register *Register) resetYzmImg() {
+	captcha := &Identity.Captcha{}
+	captcha.CookieStr = Register.CookieStr
+	captcha.GetCaptchaImgBase64()
+}
+
+//挂号信息确认页
+func (Register *Register) queryOrderCheck() {
+	Register.checkUrl = "http://www.zj12580.cn/order/check"	
+	
+	httpCurl := &HttpCurl.HttpCurl{}
+	httpCurl.SetUrl(Register.checkUrl)
+	httpCurl.SetPostData(Register.RegInfo)
+
+	headers := make(map[string]string)
+	headers["Cookie"] = Register.CookieStr
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	httpCurl.SetHeaders(headers)
+	httpCurl.GetContentsFromUrl()
 }
 

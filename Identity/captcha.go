@@ -12,6 +12,7 @@ type Captcha struct{
 	base64ImgUrl string
 	yzmScanResUrl string
 	yzmAppcode string
+	CookieStr string
 }
 
 func (Captcha *Captcha) init() {
@@ -19,8 +20,8 @@ func (Captcha *Captcha) init() {
 	Captcha.headerHost = "www.zj12580.cn"
 	Captcha.base64ImgUrl = "http://www.zj12580.cn/captcha"
 	Captcha.yzmScanResUrl = "https://302307.market.alicloudapi.com/ocr/captcha"
-    Captcha.yzmAppcode = "a924d95422454ad4a335250b534e419a"
-	// Captcha.yzmAppcode = "a924d95422454ad4a335250fadsfasdfasb534e419a"
+    // Captcha.yzmAppcode = "a924d95422454ad4a335250b534e419a"
+	Captcha.yzmAppcode = "a924d95422454ad4a335250fadsfasdfasb534e419a"
 }
 
 //获取base64的验证码图片
@@ -37,6 +38,7 @@ func (Captcha *Captcha) GetCaptchaImgBase64() string {
 	headers := make(map[string]string)
 	headers["Origin"] = Captcha.headerOrigin
 	headers["Host"] = Captcha.headerHost
+	headers["Cookie"] = Captcha.CookieStr
 	httpCurl.SetHeaders(headers)
 
 	str, err := httpCurl.GetContentsFromUrl()

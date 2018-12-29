@@ -95,7 +95,7 @@ func (HttpCurl *HttpCurl) transferPostData(method string) string {
 		}
 		urlPost = data.Encode()
 	}
-	// fmt.Printf(urlPost)
+	fmt.Println(urlPost)
 	return urlPost
 }
 
@@ -139,7 +139,7 @@ func (HttpCurl *HttpCurl) httpCurl(method string) ([]byte, error) {
 	// fmt.Printf(string(str))	
 	fmt.Println(response.StatusCode)
 	if (err != nil) {
-		fmt.Printf(string(str))
+		//fmt.Printf(string(str))
 		panic(err)
 	}
 
