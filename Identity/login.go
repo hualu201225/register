@@ -73,6 +73,15 @@ func (RegLogin *RegLogin) SetCaptcha(captcha string) {
 	RegLogin.captcha = captcha
 }
 
+func (RegLogin *RegLogin) InitCaptcha() {
+	captcha := &Captcha{}
+	base64Img := captcha.GetCaptchaImgBase64()
+	captchaStr := captcha.GetYzmResultByImg(base64Img)
+
+	RegLogin.SetCaptcha(captchaStr)
+	// RegLogin.Login()
+}
+
 func (RegLogin *RegLogin) getMd5Passwd() string {
 	md5Ctx := md5.New()
     md5Ctx.Write([]byte(RegLogin.password))
@@ -116,7 +125,12 @@ func (RegLogin *RegLogin) getHeaders() map[string]string {
 
 //模拟登陆
 func (RegLogin *RegLogin) Login() {
+	//参数初始化
 	RegLogin.init()
+
+	//获取验证码
+	RegLogin.InitCaptcha()
+
 	httpCurl := &HttpCurl.HttpCurl{}
 
 	httpCurl.SetUrl(RegLogin.loginurl)

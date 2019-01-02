@@ -58,6 +58,7 @@ func (Register *Register) init() {
 func (Register *Register) Register() {
 	//挂号信息初始化
 	Register.init()
+	return
 
 	//首先请求一次order/check页面
 	Register.queryOrderCheck()

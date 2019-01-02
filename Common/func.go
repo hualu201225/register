@@ -43,5 +43,8 @@ func (Func *Func) ParseRegReturn(returnStr string, mustCompileStr string) []map[
 	    result = append(result, m)
 	}
 
+	// 结果格式化输出
+	// prettyResult, _ := json.MarshalIndent(result, "", "  ")
+	// fmt.Println(string(prettyResult))
 	return result	
 }
