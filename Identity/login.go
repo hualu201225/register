@@ -123,8 +123,45 @@ func (RegLogin *RegLogin) getHeaders() map[string]string {
 	return headers
 } 
 
+func (RegLogin *RegLogin) isAlreadyLogin() bool {
+	//获取上次保存的cookie内容
+	Cookie := &Cookie{}
+	cookieStr := Cookie.GetCookie(RegLogin.username)
+	if (len(cookieStr) == 0) {
+		return false
+	}
+
+	str := RegLogin.getUserBaseInfo(cookieStr)
+	//匹配字符串中是否有“退出系统”
+	reg := regexp.MustCompile(`退出系统`)
+	res := reg.FindAllString(str, -1)	
+	if (len(res) > 0) {
+		return true
+	}
+
+	return false
+}
+
+func (RegLogin *RegLogin) getUserBaseInfo(cookieStr string) string {
+	httpCurl := &HttpCurl.HttpCurl{}
+	httpCurl.SetUrl("http://www.zj12580.cn/user/baseInfo")
+
+	headers := make(map[string]string)
+	headers["Cookie"] = cookieStr
+	httpCurl.SetHeaders(headers)
+
+	str, _ := httpCurl.GetContentsFromUrl()
+
+	return string(str)
+}
+
 //模拟登陆
 func (RegLogin *RegLogin) Login() {
+	//如果已经登陆了，则不重复登陆
+	if (RegLogin.isAlreadyLogin()) {
+		return
+	}
+
 	//参数初始化
 	RegLogin.init()
 

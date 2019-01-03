@@ -1,10 +1,10 @@
 package main
 
 import (
- 	_"./Identity"
+ 	"./Identity"
  	"fmt"
  	_"./HttpCurl"
- 	"./Register"
+ 	_"./Register"
 )
 
 func main() {

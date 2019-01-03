@@ -53,12 +53,21 @@ func (Register *Register) init() {
 
 	//参数初始化
 	Params.SetDefaultValues()
+
+	//当前用户登陆
+	Register.login()
+}
+
+func (Register *Register) login() {
+	login := &Identity.RegLogin{}
+	login.SetUsername(Register.Usercardno)
+	login.SetPassword(Register.Password)
+	login.Login()
 }
 
 func (Register *Register) Register() {
 	//挂号信息初始化
 	Register.init()
-	return
 
 	//首先请求一次order/check页面
 	Register.queryOrderCheck()
